@@ -1,5 +1,6 @@
 import os
 import replicate
+from asgiref.sync import sync_to_async
 
 from AIshirts.Exeptions import dailyLimitCheck
 
@@ -13,7 +14,7 @@ class Generator:
     async def stable_diffusion_base(self, prompt, user):
         ans = None
         if dailyLimitCheck(user):
-            ans = replicate.run(
+            ans = await sync_to_async(replicate.run)(
                 prompt.ai_model.access_url,
                 input={
                     "prompt": prompt.prompt,
@@ -31,7 +32,7 @@ class Generator:
     async def stable_diffusion_anime(self, prompt, user):
         ans = None
         if dailyLimitCheck(user):
-            ans = replicate.run(
+            ans = await sync_to_async(replicate.run)(
                 prompt.ai_model.access_url,
                 input={
                     "prompt": prompt.prompt,
@@ -41,7 +42,7 @@ class Generator:
                     "num_outputs": prompt.num_outputs,
                     "num_interface_steps": prompt.num_steps,
                     "guidance_scale": prompt.guidance_scale,
-                    "scheduler": prompt.scheduler,
+                    "scheduler": prompt.scheduler.name,
                     "seed": prompt.seed
                 }
             )
@@ -49,10 +50,10 @@ class Generator:
 
     async def generate(self, prompt, user):
         if prompt.ai_model.name == "stable_diffusion":
-            return self.stable_diffusion_base(prompt, user)
+            return await self.stable_diffusion_base(prompt, user)
         elif prompt.ai_model.name == "arcane":
-            return self.stable_diffusion_anime(prompt, user)
+            return await self.stable_diffusion_anime(prompt, user)
         elif prompt.ai_model.name == "anime":
-            return self.stable_diffusion_anime(prompt, user)
+            return await self.stable_diffusion_anime(prompt, user)
         else:
             raise ValueError("Unknown AI model")

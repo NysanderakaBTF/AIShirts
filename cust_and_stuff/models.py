@@ -47,11 +47,13 @@ class DeliveryAddress(models.Model):
 class Customer(AbstractUser):
     email = models.EmailField(unique=True, blank=False)
     last_login = models.DateTimeField(default=timezone.now)
-    delivery_address = models.ManyToManyField(DeliveryAddress, verbose_name="customers")
+
+    #TODO: make delivery address non dublicatable (check before creating)
+    delivery_address = models.ManyToManyField(DeliveryAddress, verbose_name="customers", blank=True)
 
     generation_count = models.SmallIntegerField(default=0)
     daily_limit = models.SmallIntegerField(default=200)
-    last_count = models.DateTimeField()
+    last_count = models.DateTimeField(null=True)
 
     objects = CustomUserManager()
 

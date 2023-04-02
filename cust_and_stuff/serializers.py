@@ -9,7 +9,7 @@ class DeliveryAddressSerializer(serializers.ModelSerializer):
 
 
 class CustomerSerializer(serializers.ModelSerializer):
-    delivery_address = DeliveryAddressSerializer()
+    delivery_address = DeliveryAddressSerializer(required=False)
 
     class Meta:
         model = Customer

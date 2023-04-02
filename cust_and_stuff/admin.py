@@ -1,12 +1,11 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 from .models import Customer, DeliveryAddress
 
 
-class CustomerAdmin(UserAdmin):
+class CustomerAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'email', 'first_name', 'last_name', 'is_staff', 'generation_count', 'daily_limit', 'last_count',
-        'delivery_address_full')
+        )
     search_fields = ('email', 'first_name', 'last_name')
     list_filter = ('generation_count',)
     fieldsets = (
@@ -16,8 +15,6 @@ class CustomerAdmin(UserAdmin):
         ('Important dates', {'fields': ('last_login',)}),
         ('Delivery address', {'fields': ('delivery_address',)}),
     )
-    def delivery_address_full(self, obj):
-        return obj.delivery_address.street_address + ','+ obj.delivery_address.city + ','+ obj.delivery_address.state + ','+ obj.delivery_address.zip_code
 
 @admin.register(DeliveryAddress)
 class DeliveryAddressAdmin(admin.ModelAdmin):

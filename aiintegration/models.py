@@ -19,11 +19,6 @@ class Image(models.Model):
     def __str__(self):
         return self.description
 
-    # def image_tag(self):
-    #     return mark_safe('<img src="/images/%s" width="150" height="150" />' % self.image)
-    #
-    # image_tag.short_description = 'Image'
-
     @property
     def filename(self):
         return os.path.basename(self.image.name)
@@ -43,8 +38,8 @@ class AiModel(models.Model):
 class Prompt(models.Model):
     prompt = models.TextField(blank=True)
     negative_prompt = models.TextField(blank=True)
-    width = models.SmallIntegerField(default=768, validators=[MinValueValidator(128), MaxValueValidator(1024)])
-    height = models.SmallIntegerField(default=768, validators=[MinValueValidator(128), MaxValueValidator(1024)])
+    width = models.SmallIntegerField(default=512, validators=[MinValueValidator(128), MaxValueValidator(1024)])
+    height = models.SmallIntegerField(default=512, validators=[MinValueValidator(128), MaxValueValidator(1024)])
     prompt_strenght = models.FloatField(default=0.8, validators=[MinValueValidator(0), MaxValueValidator(1)])
     num_outputs = models.SmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(4)])
     num_steps = models.SmallIntegerField(default=50, validators=[MinValueValidator(1), MaxValueValidator(500)])
@@ -53,11 +48,11 @@ class Prompt(models.Model):
 
     ai_model = models.ForeignKey(AiModel, on_delete=models.SET_NULL, null=True, blank=True)
 
-    seed = models.IntegerField(default=random.randint(0, 1000000000000))
-    owner = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    seed = models.IntegerField(default=random.randint(0, 10000000), blank=True)
+    owner = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
 
-    is_template = models.BooleanField(default=False)
-    is_final = models.BooleanField(default=False)
+    is_template = models.BooleanField(default=False, blank=True)
+    is_final = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         return self.prompt

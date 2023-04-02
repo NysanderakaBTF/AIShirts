@@ -1,5 +1,8 @@
+import os
+
 from rest_framework import serializers
 
+from cust_and_stuff.models import Customer
 from cust_and_stuff.serializers import CustomerSerializer
 from .models import Image, ModelSceduler, AiModel, Prompt
 
@@ -10,7 +13,7 @@ from .models import Image, ModelSceduler, AiModel, Prompt
 class AiModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = AiModel
-        fields = ['id', 'access_url', 'description', 'parameters']
+        fields = ['id', 'access_url', 'description', 'parameters', 'name']
 
 
 class ModelScedulerSerializer(serializers.ModelSerializer):
@@ -20,14 +23,17 @@ class ModelScedulerSerializer(serializers.ModelSerializer):
 
 
 class PromptSerializer(serializers.ModelSerializer):
-    scheduler = ModelScedulerSerializer()
-    ai_model = AiModelSerializer()
-    owner = CustomerSerializer()
+    scheduler = serializers.PrimaryKeyRelatedField(queryset=ModelSceduler.objects.all())
+    ai_model = serializers.PrimaryKeyRelatedField(queryset=AiModel.objects.all())
+    owner = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
 
     class Meta:
         model = Prompt
-        fields = ['id', 'prompt', 'negative_prompt', 'width', 'height', 'prompt_strenght', 'num_outputs', 'num_steps',
-                  'guidance_scale', 'seed', 'is_template', 'is_final']
+        fields = '__all__'
+
+    def create(self, validated_data):
+        prompt = Prompt.objects.create(**validated_data)
+        return prompt
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -42,3 +48,13 @@ class ImageSerializer(serializers.ModelSerializer):
 
     def get_img_url(self, obj):
         return obj.image.url
+
+    def create(self, validated_data):
+        print(validated_data)
+        image_url = validated_data.pop('image_url')
+        prompt_data = validated_data.pop('prompt')
+        prompt = Prompt.objects.create(**prompt_data)
+        image = Image(prompt=prompt, **validated_data)
+        image.image.save(os.path.basename(image_url), open(image_url, 'rb'))
+        image.save()
+        return image

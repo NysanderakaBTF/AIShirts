@@ -1,3 +1,6 @@
+from adrf.views import APIView
+from asgiref.sync import sync_to_async, async_to_sync
+from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import viewsets, views, permissions, status
 from rest_framework.generics import *
@@ -15,18 +18,27 @@ import aiohttp
 import asyncio
 
 
-async def download_images(image_urls):
-    images = []
-    async with aiohttp.ClientSession() as session:
-        for url in image_urls:
-            async with session.get(url) as response:
-                image = await response.read()
-                images.append(image)
-    return images
+# async def download_images(image_urls):
+#     images = []
+#     async with aiohttp.ClientSession() as session:
+#         for url in image_urls:
+#             async with session.get(url) as response:
+#                 image = await response.read()
+#                 images.append(image)
+#     return images
 
+async def download_images(url):
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
+        async with session.get(url) as response:
+            filename = os.path.basename(url)
+            filepath = os.path.join('static', 'images', filename)
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, 'wb') as f:
+                f.write(await response.content.read())
+            return filepath
 
-class PromptExecutor(views.APIView):
-    def __int__(self):
+class PromptExecutor(APIView):
+    def __init__(self):
         self.generator = Generator()
 
     """
@@ -43,19 +55,26 @@ class PromptExecutor(views.APIView):
     """
 
     async def post(self, request):
-        prompt = PromptSerializer(data=request.data)
-        prompt.is_valid(raise_exception=True)
-        prompt.save()
-        ans = await self.generator.generate(request.data, request.user)
-        images = await download_images(ans)
-        data = [{"image": i, "prompt": prompt} for i in images]
+        data = request.data
+        newd = data
+        prompt = PromptSerializer(data=newd)
+        await sync_to_async(prompt.is_valid)(raise_exception=True)
+        res = await sync_to_async(prompt.save)()
+        ans = await self.generator.generate(res, request.user)
+        loop = asyncio.get_event_loop()
+        download_tasks = [loop.create_task(download_images(url)) for url in ans]
+        images = await asyncio.gather(*download_tasks)
+        data = [{"image": open(i), "prompt": prompt.data} for i in images]
+        print(data)
         serializer = ImageSerializer(data=data, many=True)
-        return Response(serializer.data)
+        await sync_to_async(serializer.is_valid)(raise_exception=True)
+        ser = await sync_to_async(serializer.save)()
+        return Response({'images': ser.data, 'prompt': prompt.data})
 
 
 class PromptAPIView(views.APIView):
     def get(self, request, pk):
-        image = get_object_or_404(pk=pk)
+        image = get_object_or_404(Image, prompt_id=pk)
         return Response(ImageSerializer(image).data)
 
     def delete(self, request, pk):

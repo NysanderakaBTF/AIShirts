@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "aishirts"
+version = "0.0.1"
+description = "A business poject"
+authors = ["NysanderakaBTF <kave7771@outlook.com>"]
+license = "properitary"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -17,6 +17,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.views.static import serve
 
 from cust_and_stuff.views import FacebookLogin, TwitterLogin, GoogleLogin
 
@@ -36,6 +37,6 @@ urlpatterns = [
     path('shop/', include('shop.urls')),
     path('ai/', include('aiintegration.urls')),
     path('users/', include('cust_and_stuff.urls')),
+    # path('media/<path:path>', serve, name='serve_static_file'),
 ]
-
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

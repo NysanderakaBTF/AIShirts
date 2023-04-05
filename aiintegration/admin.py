@@ -3,7 +3,7 @@ from .models import Image, ModelSceduler, AiModel, Prompt
 
 
 class ImageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'uploaded_at', 'is_final', 'image')
+    list_display = ('id', 'uploaded_at', 'is_final', 'image_path')
     search_fields = ('uploaded_at',)
     list_filter = ('is_final',)
     list_editable = ('is_final',)

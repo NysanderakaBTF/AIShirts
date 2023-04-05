@@ -1,3 +1,5 @@
+import os
+
 from adrf.views import APIView
 from asgiref.sync import sync_to_async, async_to_sync
 from django.http import HttpResponse
@@ -17,25 +19,21 @@ from aiintegration.serializers import PromptSerializer, ImageSerializer
 import aiohttp
 import asyncio
 
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
-# async def download_images(image_urls):
-#     images = []
-#     async with aiohttp.ClientSession() as session:
-#         for url in image_urls:
-#             async with session.get(url) as response:
-#                 image = await response.read()
-#                 images.append(image)
-#     return images
 
 async def download_images(url):
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
         async with session.get(url) as response:
+            # filename = os.path.basename(url)
             filename = os.path.basename(url)
-            filepath = os.path.join('static', 'images', filename)
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            with open(filepath, 'wb') as f:
-                f.write(await response.content.read())
+            print(filename)
+            filepath = os.path.join('images/' + filename[:-4] + str(time.time() * 1000000) + filename[-4:])
+            data = await response.content.read()
+            default_storage.save(filepath, ContentFile(data))
             return filepath
+
 
 class PromptExecutor(APIView):
     def __init__(self):
@@ -64,18 +62,19 @@ class PromptExecutor(APIView):
         loop = asyncio.get_event_loop()
         download_tasks = [loop.create_task(download_images(url)) for url in ans]
         images = await asyncio.gather(*download_tasks)
-        data = [{"image": open(i), "prompt": prompt.data} for i in images]
-        print(data)
-        serializer = ImageSerializer(data=data, many=True)
+        images_data = [{"image_path": i, "prompt": prompt.data} for i in images]
+        serializer = ImageSerializer(data=images_data, many=True)
         await sync_to_async(serializer.is_valid)(raise_exception=True)
-        ser = await sync_to_async(serializer.save)()
-        return Response({'images': ser.data, 'prompt': prompt.data})
+        saved_images = await sync_to_async(serializer.save)()
+        return Response(
+            {'images': await sync_to_async(list)([{'id': i.id, 'image_path': i.image_path} for i in saved_images]),
+             'prompt': prompt.data})
 
 
-class PromptAPIView(views.APIView):
+class PromptImageAPIView(views.APIView):
     def get(self, request, pk):
-        image = get_object_or_404(Image, prompt_id=pk)
-        return Response(ImageSerializer(image).data)
+        image = Image.objects.filter(pk=pk)
+        return Response(ImageSerializer(instance=image, many=True).data)
 
     def delete(self, request, pk):
         if request.user.has_perm(CanDeleteImagePermission):
@@ -83,6 +82,27 @@ class PromptAPIView(views.APIView):
             cat.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)
+
+    def put(self, request, pk):
+        if request.user.has_perm(CanDeleteImagePermission):
+            img = get_object_or_404(Image, pk=pk)
+            serializer = ImageSerializer(instance=img, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+class PromptDetailAPIView(viewsets.ModelViewSet):
+    queryset = Prompt.objects.all()
+    serializer_class = PromptDetailSerializer
+
+    def update(self, request, pk):
+        prompt = get_object_or_404(Prompt, pk=pk)
+        serializer = PromptDetailSerializer(instance=prompt, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class PromptListView(generics.ListAPIView):

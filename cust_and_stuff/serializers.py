@@ -9,7 +9,7 @@ class DeliveryAddressSerializer(serializers.ModelSerializer):
 
 
 class CustomerSerializer(serializers.ModelSerializer):
-    delivery_address = DeliveryAddressSerializer(required=False)
+    delivery_address = DeliveryAddressSerializer(Customer.delivery_address.through.objects.all(), required=False, many=True)
 
     class Meta:
         model = Customer
@@ -17,7 +17,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class CustomerInOrderSerializer(serializers.ModelSerializer):
-    delivery_address = DeliveryAddressSerializer()
+    delivery_address = DeliveryAddressSerializer(DeliveryAddress.objects.all())
 
     class Meta:
         model = Customer

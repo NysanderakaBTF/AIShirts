@@ -11,17 +11,20 @@ from cust_and_stuff.models import Customer
 
 
 class Image(models.Model):
-    image = models.ImageField(upload_to='images/', blank=True, verbose_name='image', null=True)
+    image_path = models.CharField(max_length=512, blank=True, null=True, verbose_name='image')
     uploaded_at = models.DateTimeField(default=timezone.now)
     is_final = models.BooleanField(default=False, blank=True)
     prompt = models.ForeignKey('Prompt', on_delete=models.CASCADE, null=True, blank=True)
 
-    def __str__(self):
-        return self.description
-
     @property
     def filename(self):
-        return os.path.basename(self.image.name)
+        return self.image_path
+
+    def delete(self, *args, **kwargs):
+        if self.image_path:
+            if os.path.isfile(self.image_path):
+                os.remove(self.image_path)
+        super(Image, self).delete(*args, **kwargs)
 
 
 class ModelSceduler(models.Model):

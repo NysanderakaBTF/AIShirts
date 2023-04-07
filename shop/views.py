@@ -1,12 +1,16 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, status
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import DeliveryProvider, DeliveryType, DeliveryAddress, Category, Item, ProductImage, Color, ItemWithColor, \
-    ShipmentStatus, Order, OrderItem
+    ShipmentStatus, Order, OrderItem, Bucket
 from .permissions import ReadOnlyOrStaffOnlyPermission
 from .serializers import DeliveryProviderSerializer, DeliveryTypeSerializer, \
     CategorySerializer, ItemSerializer, ProductImageSerializer, ColorSerializer, ItemWithColorSerializer, \
-    ShipmentStatusSerializer, OrderSerializer, OrderItemSerializer
+    ShipmentStatusSerializer, OrderSerializer, OrderItemSerializer, OrderCreateSerializer, BucketSerializer, \
+    OrderItemCreateSerializer
 
 
 class DeliveryProviderViewSet(viewsets.ModelViewSet):
@@ -63,10 +67,57 @@ class OrderItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class OrderViewSet(viewsets.ModelViewSet):
+class OrderViewSet(APIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    '''
+    reqest example:
+    
+    '''
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        data.setdefault('user', request.user)
+        if 'shipped' not in data.keys():
+            data.setdefault('shipped', ShipmentStatus.objects.get(pk=1))
+
+        if 'items' in data.keys():
+            items = OrderItem.objects.filter(pk__in=data['items'])
+            data.setdefault('items', items)
+
+        pk = request.user.id
+        data['user'] = pk
+        serializer = OrderCreateSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get(self, request, *args, **kwargs):
+        orders = Order.objects.all()
+        serializer = OrderSerializer(instance=orders, many=True)
+        print(serializer.__dict__)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        serializer = OrderSerializer(instance=order)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        if request.user.is_staff:
+            order = get_object_or_404(Order, pk=pk)
+            order.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    def put(self, request, pk):
+        if request.user.is_staff:
+            order = get_object_or_404(Order, pk=pk)
+            serializer = OrderSerializer(instance=order, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 class GetOrdersForUser(generics.ListAPIView):
@@ -75,3 +126,53 @@ class GetOrdersForUser(generics.ListAPIView):
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
+
+class BucketAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, pk):
+        try:
+            bucket = Bucket.objects.get(user=request.user)
+        except Bucket.DoesNotExist:
+            bucket = Bucket.objects.create()
+            bucket.user = request.user
+            bucket = bucket.save()
+        item = ItemWithColor.objects.get(pk=pk)
+        data = request.data
+        data.setdefault('item', item.pk)
+        or_item_serializer = OrderItemCreateSerializer(data=data)
+        or_item_serializer.is_valid(raise_exception=True)
+        bucket_item = or_item_serializer.save()
+        bucket.items.add(bucket_item)
+        bucket.total += bucket_item.quantity * bucket_item.item.price
+        bucket.save()
+        return Response(BucketSerializer(instance=bucket).data, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        try:
+            bucket = Bucket.objects.get(user=request.user)
+        except Bucket.DoesNotExist:
+            bucket = Bucket.objects.create()
+            bucket.user = request.user
+            bucket = bucket.save()
+            return Response(BucketSerializer(instance=bucket).data, status=status.HTTP_201_CREATED)
+        bucket = get_object_or_404(Bucket, user=request.user)
+        serializer = BucketSerializer(instance=bucket)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        bucket = get_object_or_404(Bucket, user=request.user)
+        serializer = BucketSerializer(instance=bucket, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        bucket = get_object_or_404(Bucket, user=request.user)
+        bucket.items.remove(get_object_or_404(OrderItem, pk=pk))
+        bucket.total -= get_object_or_404(OrderItem, pk=pk).quantity * get_object_or_404(OrderItem, pk=pk).item.price
+        bucket.save()
+        return Response(BucketSerializer(instance=bucket).data, status=status.HTTP_200_OK)
+
+
+
+

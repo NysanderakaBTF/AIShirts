@@ -15,8 +15,6 @@ a
 shop/apps.py,0\a\0a3b96201bb3dcc5f41b3ecae9cf9c6c7be05821
 G
 cust_and_stuff/views.py,b\c\bc5aa912746e18712c78f6889c6a276fb71cfd94
-C
-shop/serializers.py,a\8\a8bf55253f075b7a5b26de1d182c4476b631272f
 B
 docker-compose.yml,3\5\35b8c13cf2eb2a194eada000eb310d65aed53b2a
 4
@@ -31,3 +29,23 @@ S
 requirements.txt,1\9\19359a61ae2446b51b549167b014da2fcf265768
 9
 	README.md,8\e\8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
+b
+2aiintegration/migrations/0003_alter_prompt_seed.py,8\e\8eb93341ba054dbc6f62afb029c8de60aa63a361
+O
+shop/migrations/0001_initial.py,4\6\467fcfa1127863a41c07b888f0ccadd669599e0f
+>
+pyproject.toml,5\d\5d07e7d72637aa0d59c89d381fe6dc4cf46e2491
+Y
+)cust_and_stuff/migrations/0001_initial.py,c\b\cba8559e3e2f030beed976f3c49dd0360ca8a368
+€
+Paiintegration/migrations/0005_rename_image_image_image_path_alter_prompt_seed.py,b\9\b94c843d6b48d228fb7be1e85c92e539d64ae118
+k
+;cust_and_stuff/migrations/0002_alter_customer_last_count.py,4\4\44b6d71a76251745014a7dc43e79bfee06e4fd7a
+
+Oaiintegration/migrations/0004_alter_image_image_alter_prompt_height_and_more.py,8\1\81ca98fd6a728bdfd2d81945fc77b8a123cabc82
+q
+Acust_and_stuff/migrations/0003_alter_customer_delivery_address.py,7\b\7b2ad12a8caa75973a666f3253f233dcf5b0c5c1
+X
+(aiintegration/migrations/0001_initial.py,6\a\6ab5c2f24043c80584785ad342d9f0a75d412d50
+X
+(aiintegration/migrations/0002_initial.py,e\0\e0691304c9c5cd1beabc1dfb4030bcc25c6ee1a5

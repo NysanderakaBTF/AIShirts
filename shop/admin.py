@@ -3,27 +3,33 @@ from django.contrib.admin.options import InlineModelAdmin, ModelAdmin
 from django.utils.html import format_html
 
 from AIshirts import settings
-from .models import Item, Color, ItemWithColor, ShipmentStatus, Order, DeliveryType, DeliveryProvider, OrderItem
+from .models import Item, Color, ItemWithColor, ShipmentStatus, Order, DeliveryType, DeliveryProvider, OrderItem, \
+    Manufacturer, Size, ProductImage
 
 
 @admin.register(ItemWithColor)
 class ItemWithColorAdmin(admin.ModelAdmin):
-    list_display = ('item', 'color', 'available_quantity')
+    list_display = ('item', 'color', 'available_quantity', 'price', 'manufacturer')
     list_filter = ('item', 'color')
     search_fields = ('item__name', 'color__name')
 
 
+@admin.register(Manufacturer)
+class ManufacturerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'address', 'email', 'phone_number')
+    search_fields = ('name', 'address', 'email', 'phone_number')
+
+
+@admin.register(Size)
+class ClothSizeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'chest_size', 'waist_size', 'hip_size', 'dress_length')
+
+
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category_name', 'price', 'size', 'image_preview')
-    list_filter = ('category', 'size')
+    list_display = ('name', 'category_name')
+    list_filter = ('category',)
     search_fields = ('name', 'category')
-
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}{}" width="50"/>', settings.STATIC_URL, obj.image)
-        else:
-            return '-'
 
     def category_name(self, obj):
         return [category.name for category in obj.category.all()]
@@ -77,3 +83,12 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 
 admin.site.register(OrderItem, OrderItemAdmin)
+
+
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ('product', 'image', 'created_at', 'updated_at')
+    list_filter = ('created_at', 'updated_at')
+    search_fields = ('product__name',)
+
+
+admin.site.register(ProductImage, ProductImageAdmin)

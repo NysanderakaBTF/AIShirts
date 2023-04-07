@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import DeliveryProviderViewSet, DeliveryTypeViewSet, CategoryViewSet, ItemViewSet, \
     ProductImageViewSet, ColorViewSet, ItemWithColorViewSet, ShipmentStatusViewSet, OrderViewSet, OrderItemViewSet, \
-    GetOrdersForUser
+    GetOrdersForUser, BucketAPIView
 
 urlpatterns = [
     path('delivery-providers/', DeliveryProviderViewSet.as_view({'get': 'list', 'post': 'create'}),
@@ -34,19 +34,26 @@ urlpatterns = [
     path('items-with-color/<int:pk>/', ItemWithColorViewSet.as_view(
         {'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}),
          name='itemwithcolor-detail'),
+    path('items-with-color/<int:pk>/to_bucket/', BucketAPIView.as_view()),
+    path('bucket/', BucketAPIView.as_view()),
+    path('bucket/<int:pk>/', BucketAPIView.as_view(), name='bucket-delete item from it'),
     path('shipment-statuses/', ShipmentStatusViewSet.as_view({'get': 'list', 'post': 'create'}),
          name='shipmentstatus-list'),
     path('shipment-statuses/<int:pk>/', ShipmentStatusViewSet.as_view(
         {'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}),
          name='shipmentstatus-detail'),
-    path('orders/', OrderViewSet.as_view({'get': 'list', 'post': 'create'}), name='order-list'),
+    #TODO: if user bucker is not empty, form order from it
+    path('orders/', OrderViewSet.as_view(), name='order-list'),
+    # path('orders/from_bucket/', OrderViewSet.as_view(), name='order-detail'),
     path('orders/user/', GetOrdersForUser.as_view(), name='get_orders_for_user'),
     path('orders/<int:pk>/',
-         OrderViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}),
+         OrderViewSet.as_view(),
          name='order-detail'),
-    path('orders/<int:pk>/add-item/', OrderViewSet.as_view({'post': 'add_item'}), name='order-add-item'),
+    #TODO: fully redo views for order items
     path('order-items/', OrderItemViewSet.as_view({'get': 'list', 'post': 'create'}), name='orderitem-list'),
+    #TODO: if i want just item, i can use -1 value in oid
     path('order-items/<int:pk>/',
          OrderItemViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}),
          name='orderitem-detail'),
+
 ]

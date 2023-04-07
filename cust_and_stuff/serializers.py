@@ -17,8 +17,6 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class CustomerInOrderSerializer(serializers.ModelSerializer):
-    delivery_address = DeliveryAddressSerializer(DeliveryAddress.objects.all())
-
     class Meta:
         model = Customer
-        fields = ['id', 'email', 'first_name', 'last_name', 'delivery_address']
+        fields = ['id', 'email', 'first_name', 'last_name']

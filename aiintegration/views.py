@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import viewsets, views, permissions, status
 from rest_framework.generics import *
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import *
 from rest_framework.response import Response
 from .serializers import *
@@ -36,6 +37,7 @@ async def download_images(url):
 
 
 class PromptExecutor(APIView):
+    permission_classes = (IsAuthenticated,)
     def __init__(self):
         self.generator = Generator()
 
@@ -59,6 +61,8 @@ class PromptExecutor(APIView):
         await sync_to_async(prompt.is_valid)(raise_exception=True)
         res = await sync_to_async(prompt.save)()
         ans = await self.generator.generate(res, request.user)
+        if ans is None:
+            return Response(status=status.HTTP_403_FORBIDDEN, message='Daily limit reached')
         loop = asyncio.get_event_loop()
         download_tasks = [loop.create_task(download_images(url)) for url in ans]
         images = await asyncio.gather(*download_tasks)
@@ -122,7 +126,7 @@ class ModelSchedulerApiView(ModelViewSet):
 class AiModelListCreateAPIView(generics.ListCreateAPIView):
     queryset = AiModel.objects.all()
     serializer_class = AiModelSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,CanViewAIparams)
 
     def perform_create(self, serializer):
         if not self.request.user.is_staff:
@@ -134,7 +138,7 @@ class AiModelListCreateAPIView(generics.ListCreateAPIView):
 class AiModelRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = AiModel.objects.all()
     serializer_class = AiModelSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,CanViewAIparams)
 
     def perform_update(self, serializer):
         if not self.request.user.is_staff:

@@ -1,3 +1,5 @@
+from itertools import product
+
 from rest_framework import serializers
 
 from aiintegration.models import Image, Prompt
@@ -48,6 +50,16 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 class ItemSerializer(serializers.ModelSerializer):
     category = CategorySerializer(many=True)
+    image = serializers.SerializerMethodField(required=False)
+    colors = serializers.SerializerMethodField(required=False)
+
+    def get_colors(self, obj):
+        colors = Color.objects.filter(itemwithcolor__item=obj)
+        return ColorSerializer(instance=colors, many=True).data
+
+    def get_image(self, obj):
+        images = ProductImage.objects.filter(product__item=obj)
+        return ProductImageSerializer(instance=images, many=True).data
 
     class Meta:
         model = Item
@@ -120,6 +132,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderCreateSerializer(serializers.ModelSerializer):
     shipping_address = serializers.PrimaryKeyRelatedField(queryset=DeliveryAddress.objects.all())
+    items = serializers.PrimaryKeyRelatedField(queryset=OrderItem.objects.all(), many=True, required=False)
     shipped = ShipmentStatusSerializer(required=False, read_only=True)
     shipping_method = serializers.PrimaryKeyRelatedField(queryset=DeliveryType.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())

@@ -155,7 +155,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     item = models.ForeignKey(ItemWithColor, on_delete=models.CASCADE)
     quantity = models.IntegerField()
-    prompt = models.ForeignKey(Prompt, verbose_name="prompt", on_delete=models.CASCADE, null=True)
+    prompt = models.ForeignKey(Prompt, verbose_name="prompt", on_delete=models.SET_NULL, null=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items", null=True, blank=True)
     gimage = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True)
 

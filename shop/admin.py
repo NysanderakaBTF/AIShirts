@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin.options import InlineModelAdmin, ModelAdmin
 from django.utils.html import format_html
 
-from AIshirts import settings
+from AIShirts import settings
 from .models import Item, Color, ItemWithColor, ShipmentStatus, Order, DeliveryType, DeliveryProvider, OrderItem, \
     Manufacturer, Size, ProductImage
 

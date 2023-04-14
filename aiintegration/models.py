@@ -4,6 +4,7 @@ import random
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models.signals import post_delete
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
@@ -22,6 +23,8 @@ class Image(models.Model):
 
     def delete(self, *args, **kwargs):
         if self.image_path:
+            print(self.image_path)
+            print(self.image_path.split('/'))
             if os.path.isfile(self.image_path):
                 os.remove(self.image_path)
         super(Image, self).delete(*args, **kwargs)
@@ -57,5 +60,10 @@ class Prompt(models.Model):
     is_template = models.BooleanField(default=False, blank=True)
     is_final = models.BooleanField(default=False, blank=True)
 
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.prompt
+
+

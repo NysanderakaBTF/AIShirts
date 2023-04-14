@@ -1,6 +1,4 @@
 
-I
-aiintegration/__init__.py,1\a\1acf088b683e88ad729dd544190906341018c11d
 =
 shop/tests.py,8\6\8687e4047497c82389ce2c7e78f87a1f05fa5113
 _
@@ -13,20 +11,12 @@ a
 1venv/Lib/site-packages/rest_framework/generics.py,2\1\21ed283a2445ce74949d544d30a9dd66319c4f43
 <
 shop/apps.py,0\a\0a3b96201bb3dcc5f41b3ecae9cf9c6c7be05821
-G
-cust_and_stuff/views.py,b\c\bc5aa912746e18712c78f6889c6a276fb71cfd94
-B
-docker-compose.yml,3\5\35b8c13cf2eb2a194eada000eb310d65aed53b2a
-4
-.env,3\c\3c84dcdc6bbe3d7817c49dcdc327b926fea1808a
 ]
 -.idea/sonarlint/securityhotspotstore/index.pb,8\8\88a9255124c95bdc913197c120a8d560edc59c8e
 E
 AIshirts/Exeptions.py,4\1\41d373ab501144395e3571737ad80bb6f62daca4
 S
 #.idea/sonarlint/issuestore/index.pb,9\f\9fe84ebb15faf917b7def6236dba604453cc61e0
-@
-requirements.txt,1\9\19359a61ae2446b51b549167b014da2fcf265768
 9
 	README.md,8\e\8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
 b
@@ -49,3 +39,15 @@ X
 (aiintegration/migrations/0001_initial.py,6\a\6ab5c2f24043c80584785ad342d9f0a75d412d50
 X
 (aiintegration/migrations/0002_initial.py,e\0\e0691304c9c5cd1beabc1dfb4030bcc25c6ee1a5
+E
+aiintegration/apps.py,1\7\175e3a5027497677f161fcfdbaa69cf5b8fb5bad
+F
+aiintegration/admin.py,0\6\0664a093f090f94019f6273a4809416e8d330d14
+L
+aiintegration/permissions.py,e\7\e78af2f860905f1aa84e85a241796a06a032c582
+I
+aiintegration/__init__.py,1\a\1acf088b683e88ad729dd544190906341018c11d
+J
+cust_and_stuff/__init__.py,1\a\1aedf0d800ccbbe4d92f2446c50c6d7c8c058d8c
+D
+AIShirts/__init__.py,9\9\9916d50ec0a35eba2a147c4d5963a0c49f6f3512

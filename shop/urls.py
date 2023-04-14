@@ -42,7 +42,6 @@ urlpatterns = [
     path('shipment-statuses/<int:pk>/', ShipmentStatusViewSet.as_view(
         {'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}),
          name='shipmentstatus-detail'),
-    #TODO: if user bucker is not empty, form order from it
     path('orders/', OrderViewSet.as_view(), name='order-list'),
     # path('orders/from_bucket/', OrderViewSet.as_view(), name='order-detail'),
     path('orders/user/', GetOrdersForUser.as_view(), name='get_orders_for_user'),

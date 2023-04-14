@@ -1,5 +1,5 @@
 """
-WSGI config for AIshirts project.
+WSGI config for AIShirts project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AIshirts.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AIShirts.settings')
 
 application = get_wsgi_application()

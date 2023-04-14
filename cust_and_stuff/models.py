@@ -38,7 +38,6 @@ class DeliveryAddress(models.Model):
     state = models.CharField(max_length=50)
     zip_code = models.CharField(max_length=10)
     country = models.CharField(max_length=50)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return self.street_address
@@ -54,6 +53,7 @@ class Customer(AbstractUser):
     generation_count = models.SmallIntegerField(default=0)
     daily_limit = models.SmallIntegerField(default=200)
     last_count = models.DateTimeField(null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     objects = CustomUserManager()
 

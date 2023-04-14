@@ -1,8 +1,11 @@
 import os
+from datetime import datetime
+
 import replicate
 from asgiref.sync import sync_to_async
 
-from AIshirts.Exeptions import dailyLimitCheck
+from AIShirts.Exeptions import dailyLimitCheck
+from cust_and_stuff.models import Customer
 
 
 class Generator:
@@ -18,12 +21,12 @@ class Generator:
                 prompt.ai_model.access_url,
                 input={
                     "prompt": prompt.prompt,
-                    "image_dimensions": prompt.width + 'x' + prompt.height,
+                    "image_dimensions": str(prompt.width) + 'x' + str(prompt.height),
                     "negative_prompt": prompt.negative_prompt,
                     "num_outputs": prompt.num_outputs,
                     "num_interface_steps": prompt.num_steps,
                     "guidance_scale": prompt.guidance_scale,
-                    "scheduler": prompt.scheduler,
+                    "scheduler": prompt.scheduler.name,
                     "seed": prompt.seed
                 }
             )
@@ -49,11 +52,15 @@ class Generator:
         return ans
 
     async def generate(self, prompt, user):
+        cus = await Customer.objects.aget(email=user.email)
+        cus.generation_count += 1
+        cus.last_count = datetime.now()
+        await sync_to_async(cus.save)()
         if prompt.ai_model.name == "stable_diffusion":
-            return await self.stable_diffusion_base(prompt, user)
+            return await self.stable_diffusion_base(prompt, cus)
         elif prompt.ai_model.name == "arcane":
-            return await self.stable_diffusion_anime(prompt, user)
+            return await self.stable_diffusion_anime(prompt, cus)
         elif prompt.ai_model.name == "anime":
-            return await self.stable_diffusion_anime(prompt, user)
+            return await self.stable_diffusion_anime(prompt, cus)
         else:
             raise ValueError("Unknown AI model")

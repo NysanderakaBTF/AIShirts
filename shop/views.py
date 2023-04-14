@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from .models import DeliveryProvider, DeliveryType, DeliveryAddress, Category, Item, ProductImage, Color, ItemWithColor, \
     ShipmentStatus, Order, OrderItem, Bucket
-from .permissions import ReadOnlyOrStaffOnlyPermission
+from .permissions import ReadOnlyOrStaffOnlyPermission, ModifyOrdersPermission, IsOwnerOrStaffOnly
 from .serializers import DeliveryProviderSerializer, DeliveryTypeSerializer, \
     CategorySerializer, ItemSerializer, ProductImageSerializer, ColorSerializer, ItemWithColorSerializer, \
     ShipmentStatusSerializer, OrderSerializer, OrderItemSerializer, OrderCreateSerializer, BucketSerializer, \
@@ -69,7 +69,7 @@ class OrderItemViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(APIView):
     queryset = Order.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ModifyOrdersPermission]
     '''
     reqest example:
     
@@ -82,8 +82,9 @@ class OrderViewSet(APIView):
             data.setdefault('shipped', ShipmentStatus.objects.get(pk=1))
 
         if 'items' in data.keys():
-            items = OrderItem.objects.filter(pk__in=data['items'])
-            data.setdefault('items', items)
+            bucket = Bucket.objects.get(user=request.user)
+            bucket.items.set(filter(lambda x: x.pk not in data['items'], bucket.items.all()))
+            bucket.save()
 
         pk = request.user.id
         data['user'] = pk
@@ -128,14 +129,14 @@ class GetOrdersForUser(generics.ListAPIView):
         return Order.objects.filter(user=self.request.user)
 
 class BucketAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrStaffOnly]
     def post(self, request, pk):
         try:
             bucket = Bucket.objects.get(user=request.user)
         except Bucket.DoesNotExist:
-            bucket = Bucket.objects.create()
-            bucket.user = request.user
-            bucket = bucket.save()
+            bucket_ser = BucketSerializer(data={'user':request.user.pk})
+            bucket_ser.is_valid(raise_exception=True)
+            bucket = bucket_ser.save()
         item = ItemWithColor.objects.get(pk=pk)
         data = request.data
         data.setdefault('item', item.pk)
@@ -151,9 +152,9 @@ class BucketAPIView(APIView):
         try:
             bucket = Bucket.objects.get(user=request.user)
         except Bucket.DoesNotExist:
-            bucket = Bucket.objects.create()
-            bucket.user = request.user
-            bucket = bucket.save()
+            bucket_ser = BucketSerializer(data={'user':request.user.pk})
+            bucket_ser.is_valid(raise_exception=True)
+            bucket = bucket_ser.save()
             return Response(BucketSerializer(instance=bucket).data, status=status.HTTP_201_CREATED)
         bucket = get_object_or_404(Bucket, user=request.user)
         serializer = BucketSerializer(instance=bucket)

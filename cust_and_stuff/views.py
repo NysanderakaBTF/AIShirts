@@ -5,9 +5,10 @@ from dj_rest_auth.registration.views import SocialLoginView
 from dj_rest_auth.social_serializers import TwitterLoginSerializer
 from rest_framework import generics, permissions, viewsets
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from shop.permissions import ReadOnlyOrStaffOnlyPermission
+from .permissions import IsCurrentUserOrStaff
 from .models import Customer, DeliveryAddress
 from .serializers import CustomerSerializer, DeliveryAddressSerializer
 
@@ -20,13 +21,22 @@ class CustomerListCreateAPIView(generics.ListCreateAPIView):
 class CustomerRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = (permissions.IsAdminUser,)
+    #TODO: permission that user cat updait himself
+    permission_classes = (IsCurrentUserOrStaff,)
 
-    def perform_update(self, serializer):
+    def patch(self, request, pk):
+        instance = get_object_or_404(Customer, pk=pk)
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data)
 
-    def perform_destroy(self, instance):
-        instance.delete()
+    def partial_update(self, request, pk):
+        instance = get_object_or_404(Customer, pk=pk)
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class CustomerGenerationCountAPIView(generics.UpdateAPIView):
@@ -60,4 +70,4 @@ class GoogleLogin(SocialLoginView):
 class DeliveryAddressViewSet(viewsets.ModelViewSet):
     queryset = DeliveryAddress.objects.all()
     serializer_class = DeliveryAddressSerializer
-    permission_classes = [ReadOnlyOrStaffOnlyPermission]
+    permission_classes = [IsAuthenticated]
